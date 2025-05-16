@@ -1,9 +1,8 @@
 import RPi.GPIO as GPIO
 import time
-import threading
 import tkinter as tk
 
-PIN = 18  # GPIO BCM 번호
+PIN = 18  # GPIO BCM 
 
 class GPIOWaveGUI:
     def __init__(self, master):
@@ -30,8 +29,8 @@ class GPIOWaveGUI:
         self.status.grid(row=2, column=0, columnspan=3, pady=10)
 
         self.frequency = 1.0  # Default frequency
-        self.running = False
-        self.thread = None
+        self.duty_cycle = 50  # 50% duty cycle
+        self.pwm = None
 
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(PIN, GPIO.OUT)
@@ -44,35 +43,25 @@ class GPIOWaveGUI:
                 raise ValueError
             self.frequency = freq
             self.status.config(text=f"Frequency set to {freq:.2f} Hz", fg="green")
+            # If PWM is already running, update it
+            if self.pwm:
+                self.pwm.ChangeFrequency(self.frequency)
         except ValueError:
             self.status.config(text="Invalid frequency!", fg="red")
 
     def start_wave(self):
-        if not self.running:
-            self.running = True
-            self.thread = threading.Thread(target=self.generate_wave)
-            self.thread.start()
-            self.status.config(text="Wave generation started", fg="blue")
+        if self.pwm is not None:
+            self.pwm.stop()
+        self.pwm = GPIO.PWM(PIN, self.frequency)
+        self.pwm.start(self.duty_cycle)
+        self.status.config(text=f"PWM started at {self.frequency:.2f} Hz", fg="blue")
 
     def stop_wave(self):
-        self.running = False
-        if self.thread is not None:
-            self.thread.join()
+        if self.pwm is not None:
+            self.pwm.stop()
+            self.pwm = None
         GPIO.output(PIN, GPIO.LOW)
-        self.status.config(text="Wave generation stopped", fg="black")
-
-    def generate_wave(self):
-        half_period = 1.0 / (2 * self.frequency)
-        state = False
-        next_toggle = time.perf_counter()
-
-        while self.running:
-            now = time.perf_counter()
-            if now >= next_toggle:
-                state = not state
-                GPIO.output(PIN, state)
-                next_toggle += half_period
-            time.sleep(0.001)
+        self.status.config(text="PWM stopped", fg="black")
 
     def on_close(self):
         self.stop_wave()
