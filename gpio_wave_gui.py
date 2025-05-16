@@ -2,7 +2,7 @@ import RPi.GPIO as GPIO
 import time
 import tkinter as tk
 
-PIN = 18  # GPIO BCM 
+PIN = 18  # GPIO BCM 번호
 
 class GPIOWaveGUI:
     def __init__(self, master):
@@ -34,3 +34,42 @@ class GPIOWaveGUI:
 
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(PIN, GPIO.OUT)
+        GPIO.output(PIN, GPIO.LOW)
+
+    def set_frequency(self):
+        try:
+            freq = float(self.freq_entry.get())
+            if freq <= 0:
+                raise ValueError
+            self.frequency = freq
+            if self.pwm:
+                self.pwm.ChangeFrequency(self.frequency)
+            self.status.config(text=f"Frequency set to {freq:.2f} Hz", fg="green")
+        except ValueError:
+            self.status.config(text="Invalid frequency!", fg="red")
+
+    def start_wave(self):
+        if self.pwm is None:
+            self.pwm = GPIO.PWM(PIN, self.frequency)
+            self.pwm.start(self.duty_cycle)
+            self.status.config(text=f"PWM started at {self.frequency:.2f} Hz", fg="blue")
+        else:
+            self.status.config(text="PWM already running", fg="orange")
+
+    def stop_wave(self):
+        if self.pwm is not None:
+            self.pwm.stop()
+            self.pwm = None
+        GPIO.output(PIN, GPIO.LOW)
+        self.status.config(text="PWM stopped", fg="black")
+
+    def on_close(self):
+        self.stop_wave()
+        GPIO.cleanup()
+        self.master.destroy()
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = GPIOWaveGUI(root)
+    root.protocol("WM_DELETE_WINDOW", app.on_close)
+    root.mainloop()
