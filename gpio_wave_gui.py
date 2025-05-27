@@ -10,7 +10,11 @@ class PulseGeneratorGUI:
     def __init__(self, master):
         self.master = master
         master.title("GPIO Pulse Generator")
-        self.master.state('zoomed')  # 창 최대화, 작업표시줄 보임
+
+        # ✅ 7인치 라즈베리파이 터치 디스플레이 해상도에 맞춤
+        master.attributes('-fullscreen', False)
+        master.geometry("800x480")
+        master.wm_minsize(800, 480)
 
         self.pulse_width_ms = 1000
         self.unit = 'ms'
@@ -39,6 +43,7 @@ class PulseGeneratorGUI:
 
         for i in range(3):
             action_frame.columnconfigure(i, weight=1)
+
         for i in range(4):
             master.rowconfigure(i, weight=1)
         for i in range(3):
