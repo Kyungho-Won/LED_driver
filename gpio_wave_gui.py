@@ -11,10 +11,8 @@ class PulseGeneratorGUI:
         self.master = master
         master.title("GPIO Pulse Generator")
 
-        # ✅ 라즈베리파이 7인치 터치 디스플레이 해상도
-        master.geometry("800x480")
-        master.wm_minsize(800, 480)
-        master.attributes('-fullscreen', False)
+        # ✅ 진짜 전체화면
+        master.attributes('-fullscreen', True)
 
         self.pulse_width_ms = 1000
         self.unit = 'ms'
@@ -28,7 +26,7 @@ class PulseGeneratorGUI:
         self.status = tk.Label(master, text="Ready", fg="blue", font=self.font_status)
         self.status.grid(row=0, column=0, columnspan=3, pady=10, sticky="ew")
 
-        # Exit 버튼
+        # Exit 버튼 (우측 상단 고정)
         self.exit_button = tk.Button(master, text="Exit", font=("Consolas", 14, "bold"),
                                      command=self.on_close, bg="#d9534f", fg="white")
         self.exit_button.grid(row=0, column=3, padx=10, pady=10, sticky="ne")
@@ -53,10 +51,10 @@ class PulseGeneratorGUI:
         for i in range(3):
             action_frame.columnconfigure(i, weight=1)
 
-        # 전체 프레임 레이아웃 확장 지정
-        for i in range(4):
-            master.rowconfigure(i, weight=1)       # row: status, entry, keypad, buttons
-            master.columnconfigure(i, weight=1)    # column 0~3 포함 (Exit 버튼까지)
+        # 전체 프레임 확장 설정
+        for i in range(4):  # 상태창, 입력창, 키패드, 동작버튼
+            master.rowconfigure(i, weight=1)
+            master.columnconfigure(i, weight=1)
 
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(PIN, GPIO.OUT)
@@ -109,7 +107,7 @@ class PulseGeneratorGUI:
         start = time.perf_counter()
         target = self.pulse_width_ms / 1000.0
         while (time.perf_counter() - start) < target:
-            pass  # busy-wait for precision
+            pass
 
         GPIO.output(PIN, GPIO.LOW)
 
