@@ -3,6 +3,7 @@ import RPi.GPIO as GPIO
 import time
 import os
 from datetime import datetime
+import threading
 
 PIN = 18
 
@@ -24,17 +25,22 @@ class PulseGeneratorGUI:
         self.status = tk.Label(master, text="Ready", fg="blue", font=self.font_status)
         self.status.grid(row=0, column=0, columnspan=3, pady=10, sticky="ew")
 
+        # 종료 버튼
+        self.exit_button = tk.Button(master, text="Exit", font=("Consolas", 14, "bold"),
+                                     command=self.on_close, bg="#d9534f", fg="white")
+        self.exit_button.place(relx=1.0, rely=0.0, anchor='ne', x=-10, y=10)
+
         # 입력창
         self.display = tk.Entry(master, font=self.font_button, justify='right')
         self.display.grid(row=1, column=0, columnspan=3, padx=20, pady=10, sticky="ew")
         self.update_display()
 
-        # 숫자 키패드
+        # 키패드
         self.button_frame = tk.Frame(master)
         self.button_frame.grid(row=2, column=0, columnspan=3, padx=20, pady=10, sticky="nsew")
         self.create_keypad()
 
-        # 액션 버튼
+        # 동작 버튼
         action_frame = tk.Frame(master)
         action_frame.grid(row=3, column=0, columnspan=3, pady=20, sticky="ew")
         tk.Button(action_frame, text="Apply", font=self.font_main, command=self.apply_input).grid(row=0, column=0, padx=10, sticky="ew")
@@ -95,8 +101,9 @@ class PulseGeneratorGUI:
         now = datetime.now().strftime("%H:%M:%S")
         self.status.config(text=f"Pulse sent at {now} for {self.pulse_width_ms} ms", fg="blue")
         GPIO.output(PIN, GPIO.HIGH)
-        self.master.update()
-        time.sleep(self.pulse_width_ms / 1000.0)
+        threading.Timer(self.pulse_width_ms / 1000.0, self.set_pin_low).start()
+
+    def set_pin_low(self):
         GPIO.output(PIN, GPIO.LOW)
 
     def shutdown_pi(self):
