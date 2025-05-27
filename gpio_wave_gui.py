@@ -11,10 +11,10 @@ class PulseGeneratorGUI:
         self.master = master
         master.title("GPIO Pulse Generator")
 
-        # ✅ 7인치 라즈베리파이 터치 디스플레이 해상도에 맞춤
-        master.attributes('-fullscreen', False)
+        # ✅ 라즈베리파이 7인치 터치 디스플레이 해상도
         master.geometry("800x480")
         master.wm_minsize(800, 480)
+        master.attributes('-fullscreen', False)
 
         self.pulse_width_ms = 1000
         self.unit = 'ms'
@@ -24,19 +24,28 @@ class PulseGeneratorGUI:
         self.font_button = ("Consolas", 24, "bold")
         self.font_status = ("Consolas", 16, "bold")
 
+        # 상태창
         self.status = tk.Label(master, text="Ready", fg="blue", font=self.font_status)
         self.status.grid(row=0, column=0, columnspan=3, pady=10, sticky="ew")
 
+        # Exit 버튼
+        self.exit_button = tk.Button(master, text="Exit", font=("Consolas", 14, "bold"),
+                                     command=self.on_close, bg="#d9534f", fg="white")
+        self.exit_button.grid(row=0, column=3, padx=10, pady=10, sticky="ne")
+
+        # 입력창
         self.display = tk.Entry(master, font=self.font_button, justify='right')
-        self.display.grid(row=1, column=0, columnspan=3, padx=20, pady=10, sticky="ew")
+        self.display.grid(row=1, column=0, columnspan=4, padx=20, pady=10, sticky="ew")
         self.update_display()
 
+        # 키패드
         self.button_frame = tk.Frame(master)
-        self.button_frame.grid(row=2, column=0, columnspan=3, padx=20, pady=10, sticky="nsew")
+        self.button_frame.grid(row=2, column=0, columnspan=4, padx=20, pady=10, sticky="nsew")
         self.create_keypad()
 
+        # 동작 버튼
         action_frame = tk.Frame(master)
-        action_frame.grid(row=3, column=0, columnspan=3, pady=20, sticky="ew")
+        action_frame.grid(row=3, column=0, columnspan=4, pady=20, sticky="ew")
         tk.Button(action_frame, text="Apply", font=self.font_main, command=self.apply_input).grid(row=0, column=0, padx=10, sticky="ew")
         tk.Button(action_frame, text="Start", font=self.font_main, command=self.send_pulse).grid(row=0, column=1, padx=10, sticky="ew")
         tk.Button(action_frame, text="Shutdown Pi", font=self.font_main, command=self.shutdown_pi).grid(row=0, column=2, padx=10, sticky="ew")
@@ -44,10 +53,10 @@ class PulseGeneratorGUI:
         for i in range(3):
             action_frame.columnconfigure(i, weight=1)
 
+        # 전체 프레임 레이아웃 확장 지정
         for i in range(4):
-            master.rowconfigure(i, weight=1)
-        for i in range(3):
-            master.columnconfigure(i, weight=1)
+            master.rowconfigure(i, weight=1)       # row: status, entry, keypad, buttons
+            master.columnconfigure(i, weight=1)    # column 0~3 포함 (Exit 버튼까지)
 
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(PIN, GPIO.OUT)
@@ -100,7 +109,7 @@ class PulseGeneratorGUI:
         start = time.perf_counter()
         target = self.pulse_width_ms / 1000.0
         while (time.perf_counter() - start) < target:
-            pass  # busy-wait로 정확한 시간 유지
+            pass  # busy-wait for precision
 
         GPIO.output(PIN, GPIO.LOW)
 
