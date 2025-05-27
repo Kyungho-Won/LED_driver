@@ -11,7 +11,7 @@ class PulseGeneratorGUI:
         self.master = master
         master.title("GPIO Pulse Generator")
 
-        # ✅ 진짜 전체화면
+        # ✅ 진짜 전체화면 모드
         master.attributes('-fullscreen', True)
 
         self.pulse_width_ms = 1000
@@ -36,12 +36,12 @@ class PulseGeneratorGUI:
         self.display.grid(row=1, column=0, columnspan=4, padx=20, pady=10, sticky="ew")
         self.update_display()
 
-        # 키패드
+        # 키패드 프레임
         self.button_frame = tk.Frame(master)
         self.button_frame.grid(row=2, column=0, columnspan=4, padx=20, pady=10, sticky="nsew")
         self.create_keypad()
 
-        # 동작 버튼
+        # 동작 버튼들
         action_frame = tk.Frame(master)
         action_frame.grid(row=3, column=0, columnspan=4, pady=20, sticky="ew")
         tk.Button(action_frame, text="Apply", font=self.font_main, command=self.apply_input).grid(row=0, column=0, padx=10, sticky="ew")
@@ -51,9 +51,10 @@ class PulseGeneratorGUI:
         for i in range(3):
             action_frame.columnconfigure(i, weight=1)
 
-        # 전체 프레임 확장 설정
-        for i in range(4):  # 상태창, 입력창, 키패드, 동작버튼
+        # ✅ 가로·세로 확장 설정
+        for i in range(4):  # 4개의 행: 상태, 입력, 키패드, 버튼
             master.rowconfigure(i, weight=1)
+        for i in range(4):  # 4개의 열: Exit 버튼까지 포함
             master.columnconfigure(i, weight=1)
 
         GPIO.setmode(GPIO.BCM)
@@ -72,9 +73,9 @@ class PulseGeneratorGUI:
                                 command=lambda k=key: self.key_press(k))
                 btn.grid(row=r, column=c, padx=5, pady=5, sticky="nsew")
 
-        for i in range(4):
+        for i in range(4):  # rows
             self.button_frame.rowconfigure(i, weight=1)
-        for i in range(3):
+        for i in range(3):  # columns
             self.button_frame.columnconfigure(i, weight=1)
 
     def key_press(self, key):
