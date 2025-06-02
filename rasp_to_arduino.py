@@ -17,9 +17,10 @@ class PulseGeneratorGUI:
         self.current_input = ""
         self.serial_port = None
 
-        self.font_main = ("Consolas", 20, "bold")
-        self.font_button = ("Consolas", 24, "bold")
-        self.font_status = ("Consolas", 16, "bold")
+        # Adjusted font sizes for better fullscreen fit
+        self.font_main = ("Consolas", 16, "bold")
+        self.font_button = ("Consolas", 20, "bold")
+        self.font_status = ("Consolas", 14, "bold")
 
         self.status = tk.Label(master, text="Ready", fg="blue", font=self.font_status)
         self.status.grid(row=0, column=0, columnspan=3, pady=10, sticky="ew")
@@ -76,7 +77,7 @@ class PulseGeneratorGUI:
             for c, key in enumerate(row):
                 btn = tk.Button(self.button_frame, text=key, font=self.font_button,
                                 command=lambda k=key: self.key_press(k))
-                btn.grid(row=r, column=c, padx=5, pady=5, sticky="nsew")
+                btn.grid(row=r, column=c, padx=4, pady=4, sticky="nsew")
 
         for i in range(4):
             self.button_frame.rowconfigure(i, weight=1)
