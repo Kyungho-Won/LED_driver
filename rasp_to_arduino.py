@@ -23,21 +23,32 @@ class PulseGeneratorGUI:
         self.font_status = ("Consolas", 14, "bold")
 
         self.status = tk.Label(master, text="Ready", fg="blue", font=self.font_status)
-        self.status.grid(row=0, column=0, columnspan=3, pady=10, sticky="ew")
+        self.status.grid(row=0, column=0, columnspan=4, pady=10, sticky="w")
 
         self.exit_button = tk.Button(master, text="Exit", font=("Consolas", 14, "bold"),
                                      command=self.on_close, bg="#d9534f", fg="white")
-        self.exit_button.grid(row=0, column=3, padx=10, pady=10, sticky="ne")
+        self.exit_button.grid(row=0, column=4, padx=10, pady=10, sticky="ne")
 
-        self.display = tk.Entry(master, font=self.font_button, justify='right')
-        self.display.grid(row=1, column=0, columnspan=3, padx=20, pady=10, sticky="ew")
+        display_frame = tk.Frame(master)
+        display_frame.grid(row=1, column=0, columnspan=5, padx=20, pady=10, sticky="ew")
+        display_frame.columnconfigure(0, weight=3)
+        display_frame.columnconfigure(1, weight=1)
+        display_frame.columnconfigure(2, weight=2)
+        display_frame.columnconfigure(3, weight=3)
+
+        self.display = tk.Entry(display_frame, font=self.font_button, justify='right')
+        self.display.grid(row=0, column=0, sticky="ew")
         self.update_display()
 
+        self.unit_label = tk.Label(display_frame, text='ms', font=self.font_main)
+        self.unit_label.grid(row=0, column=1, sticky="w")
+
+        tk.Label(display_frame, text="Serial Port:", font=self.font_main).grid(row=0, column=2, sticky="e")
         self.port_var = tk.StringVar()
-        tk.Label(master, text="Serial Port:", font=self.font_main).grid(row=1, column=3, sticky="e")
-        self.port_combo = ttk.Combobox(master, textvariable=self.port_var, values=self.get_serial_ports(), state="readonly", font=self.font_main)
-        self.port_combo.grid(row=1, column=4, padx=5, sticky="ew")
+        self.port_combo = ttk.Combobox(display_frame, textvariable=self.port_var, values=self.get_serial_ports(), state="readonly")
+        self.port_combo.grid(row=0, column=3, sticky="ew")
         self.port_combo.bind("<<ComboboxSelected>>", self.connect_serial)
+        self.port_combo.option_add("*TCombobox*Listbox.font", "Consolas 14")
 
         self.button_frame = tk.Frame(master)
         self.button_frame.grid(row=2, column=0, columnspan=5, padx=20, pady=10, sticky="nsew")
@@ -89,14 +100,14 @@ class PulseGeneratorGUI:
             self.current_input = ""
         elif key == 'MS/S':
             self.unit = 's' if self.unit == 'ms' else 'ms'
+            self.unit_label.config(text=self.unit)
         else:
             self.current_input += key
         self.update_display()
 
     def update_display(self):
-        suffix = ' s' if self.unit == 's' else ' ms'
         self.display.delete(0, tk.END)
-        self.display.insert(0, self.current_input + suffix)
+        self.display.insert(0, self.current_input)
 
     def apply_input(self):
         try:
