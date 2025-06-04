@@ -45,7 +45,7 @@ class PulseGeneratorGUI:
 
         tk.Label(display_frame, text="Serial Port:", font=self.font_main).grid(row=0, column=2, sticky="e")
         self.port_var = tk.StringVar()
-        self.port_combo = ttk.Combobox(display_frame, textvariable=self.port_var, values=self.get_serial_ports(), state="readonly")
+        self.port_combo = ttk.Combobox(display_frame, textvariable=self.port_var, state="readonly")
         self.port_combo.grid(row=0, column=3, sticky="ew")
         self.port_combo.bind("<<ComboboxSelected>>", self.connect_serial)
         self.port_combo.option_add("*TCombobox*Listbox.font", "Consolas 14")
@@ -65,12 +65,31 @@ class PulseGeneratorGUI:
         for i in range(4):
             master.rowconfigure(i, weight=1)
 
+        # After all GUI is initialized, set ports and try auto connect
+        all_ports = self.get_serial_ports()
+        self.port_combo['values'] = [p[0] for p in all_ports]
+        self.port_var.set("")  # Clear default selection
+        self.try_auto_connect()
+
     def get_serial_ports(self):
         ports = serial.tools.list_ports.comports()
-        return [port.device for port in ports]
+        return [(port.device, port.description) for port in ports]
 
-    def connect_serial(self, event=None):
-        port = self.port_var.get()
+    def try_auto_connect(self):
+        ports = self.get_serial_ports()
+        for device, desc in ports:
+            if "Arduino" in desc or "ttyACM" in device or "ttyUSB" in device:
+                try:
+                    self.port_var.set(device)
+                    self.connect_serial(port=device)
+                    return
+                except:
+                    continue
+        self.status.config(text="Auto-connect failed. Please select manually.", fg="orange")
+
+    def connect_serial(self, event=None, port=None):
+        if event:
+            port = self.port_var.get()
         try:
             self.serial_port = serial.Serial(port, 9600, timeout=2)
             time.sleep(2)
