@@ -89,7 +89,7 @@ class PulseGeneratorGUI:
                     continue
         self.status.config(text="Auto-connect failed. Please select manually.", fg="orange")
 
-    def connect_serial(self, event=None, port=None):
+    def connect_serial(self, event=None, port=None): # Arduino와 USB 연결, command를 보내는 용도 (ON/OFF, 특정 시간 동안 ON)
         if event:
             port = self.port_var.get()
         try:
@@ -133,12 +133,12 @@ class PulseGeneratorGUI:
     def apply_input(self):
         try:
             val = int(self.current_input)
-            self.pulse_width_ms = val * 1000 if self.unit == 's' else val
+            self.pulse_width_ms = val * 1000 if self.unit == 's' else val # 사용자가 s를 선택해도 ms로 변환하여 전송
             self.status.config(text=f"Pulse set to {self.pulse_width_ms} ms", fg="green")
         except ValueError:
             self.status.config(text="Invalid input!", fg="red")
 
-    def send_pulse(self):
+    def send_pulse(self): # USB로 연결된 Arduino에 문자열 전송(예: pulse_1000ms)
         if not self.serial_port or not self.serial_port.is_open:
             self.status.config(text="Serial not connected", fg="red")
             return
@@ -155,7 +155,7 @@ class PulseGeneratorGUI:
         except Exception as e:
             self.status.config(text=f"Send failed: {e}", fg="red")
 
-    def send_on(self):
+    def send_on(self): # USB로 연결된 Arduino에 ON 문자열 전송 - 계속해서 LED ON
         if not self.serial_port or not self.serial_port.is_open:
             self.status.config(text="Serial not connected", fg="red")
             return
@@ -166,7 +166,7 @@ class PulseGeneratorGUI:
         except Exception as e:
             self.status.config(text=f"Send failed: {e}", fg="red")
 
-    def send_off(self):
+    def send_off(self): # USB로 연결된 Arduino에 OFF 문자열 전송 - LED OFF
         if not self.serial_port or not self.serial_port.is_open:
             self.status.config(text="Serial not connected", fg="red")
             return
