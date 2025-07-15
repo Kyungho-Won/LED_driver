@@ -1,31 +1,45 @@
-const int outPin = 8;
+const int pin = LED_BUILTIN; // LED_BUILTIN 또는 원하는 핀 번호로 변경
+
+unsigned long pulse_start_time = 0;
+bool pulse_active = false;
+unsigned long pulse_duration_us = 0;
 
 void setup() {
-  pinMode(outPin, OUTPUT);
-  digitalWrite(outPin, LOW);
+  pinMode(pin, OUTPUT);
+  digitalWrite(pin, LOW);
   Serial.begin(9600);
+  while (!Serial) {
+    ; // 시리얼 연결 대기 (필요 시)
+  }
 }
 
 void loop() {
   if (Serial.available()) {
-    String cmd = Serial.readStringUntil('\n');
-    cmd.trim();
+    String input = Serial.readStringUntil('\n');
+    input.trim();
 
-    // 명령 형식: pulse_XXXms (예: pulse_1ms, pulse_1000ms)
-    if (cmd.startsWith("pulse_") && cmd.endsWith("ms")) {
-      // 숫자 부분만 추출
-      cmd.remove(0, 6);              // "pulse_" 제거
-      cmd.remove(cmd.length() - 2);  // "ms" 제거
-
-      int duration_ms = cmd.toInt();
-      if (duration_ms > 0) {
-        unsigned long start = micros();
-        unsigned long duration_us = duration_ms * 1000UL;
-
-        digitalWrite(outPin, HIGH);
-        while (micros() - start < duration_us);  // 정밀 지연
-        digitalWrite(outPin, LOW);
+    if (input.startsWith("pulse_")) {
+      int durationStart = 6;
+      int durationEnd = input.indexOf("ms");
+      if (durationEnd > durationStart) {
+        int duration_ms = input.substring(durationStart, durationEnd).toInt();
+        pulse_duration_us = (unsigned long)duration_ms * 1000;
+        pulse_start_time = micros();
+        digitalWrite(pin, HIGH);
+        pulse_active = true;
       }
+    } else if (input == "on") {
+      digitalWrite(pin, HIGH);
+      pulse_active = false; // 수동 제어 상태로 전환
+    } else if (input == "off") {
+      digitalWrite(pin, LOW);
+      pulse_active = false;
     }
+  }
+
+  // 고정밀 타이머 제어
+  if (pulse_active && (micros() - pulse_start_time >= pulse_duration_us)) {
+    digitalWrite(pin, LOW);
+    pulse_active = false;
   }
 }

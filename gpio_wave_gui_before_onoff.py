@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 import serial
 import serial.tools.list_ports
 import time
@@ -17,6 +17,7 @@ class PulseGeneratorGUI:
         self.current_input = ""
         self.serial_port = None
 
+        # Adjusted font sizes for better fullscreen fit
         self.font_main = ("Consolas", 16, "bold")
         self.font_button = ("Consolas", 20, "bold")
         self.font_status = ("Consolas", 14, "bold")
@@ -58,19 +59,16 @@ class PulseGeneratorGUI:
         tk.Button(action_frame, text="Apply", font=self.font_main, command=self.apply_input).grid(row=0, column=0, padx=10, sticky="ew")
         tk.Button(action_frame, text="Start", font=self.font_main, command=self.send_pulse).grid(row=0, column=1, padx=10, sticky="ew")
         tk.Button(action_frame, text="Shutdown Pi", font=self.font_main, command=self.shutdown_pi).grid(row=0, column=2, padx=10, sticky="ew")
-        tk.Button(action_frame, text="ON", font=self.font_main, bg="green", command=self.send_on).grid(row=0, column=3, padx=10, sticky="ew")
-        tk.Button(action_frame, text="OFF", font=self.font_main, bg="red", command=self.send_off).grid(row=0, column=4, padx=10, sticky="ew")
-        self.onoff_state = tk.StringVar(value="Current: OFF")
-        tk.Label(action_frame, textvariable=self.onoff_state, font=self.font_main).grid(row=1, column=0, columnspan=5, pady=10)
 
         for i in range(5):
             master.columnconfigure(i, weight=1)
         for i in range(4):
             master.rowconfigure(i, weight=1)
 
+        # After all GUI is initialized, set ports and try auto connect
         all_ports = self.get_serial_ports()
         self.port_combo['values'] = [p[0] for p in all_ports]
-        self.port_var.set("")
+        self.port_var.set("")  # Clear default selection
         self.try_auto_connect()
 
     def get_serial_ports(self):
@@ -142,38 +140,11 @@ class PulseGeneratorGUI:
         if not self.serial_port or not self.serial_port.is_open:
             self.status.config(text="Serial not connected", fg="red")
             return
-
-        if self.onoff_state.get() == "Current: ON":
-            self.status.config(text="Pulse blocked: Currently ON", fg="orange")
-            return
-
         try:
             now = datetime.now().strftime("%H:%M:%S")
             command = f"pulse_{self.pulse_width_ms}ms\n"
             self.serial_port.write(command.encode())
             self.status.config(text=f"Pulse sent at {now} for {self.pulse_width_ms} ms", fg="blue")
-        except Exception as e:
-            self.status.config(text=f"Send failed: {e}", fg="red")
-
-    def send_on(self):
-        if not self.serial_port or not self.serial_port.is_open:
-            self.status.config(text="Serial not connected", fg="red")
-            return
-        try:
-            self.serial_port.write(b'on\n')
-            self.status.config(text="ON command sent", fg="blue")
-            self.onoff_state.set("Current: ON")
-        except Exception as e:
-            self.status.config(text=f"Send failed: {e}", fg="red")
-
-    def send_off(self):
-        if not self.serial_port or not self.serial_port.is_open:
-            self.status.config(text="Serial not connected", fg="red")
-            return
-        try:
-            self.serial_port.write(b'off\n')
-            self.status.config(text="OFF command sent", fg="blue")
-            self.onoff_state.set("Current: OFF")
         except Exception as e:
             self.status.config(text=f"Send failed: {e}", fg="red")
 
